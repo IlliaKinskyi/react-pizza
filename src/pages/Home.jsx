@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext, useRef } from 'react'
 import PizzaBlock from '../components/PizzaBlock';
 import Skeleton from '../components/PizzaBlock/Skeleton';
 import Sort from '../components/Sort';
@@ -6,39 +6,90 @@ import Categories from '../components/Categories';
 import Pagination from '../components/Pagination';
 import { SearchContext } from '../App';
 import { useSelector, useDispatch } from 'react-redux';
-import { setCategoryId } from '../redux/slices/filterSlice'
+import { setCategoryId, setCurrentPage, setFilters } from '../redux/slices/filterSlice'
 import axios from 'axios'
+import qs from 'qs'
+import { useNavigate } from 'react-router-dom'
+import { sortList } from '../components/Sort'
 
 const Home = () => {
+  const navigate = useNavigate()
   const dispatch = useDispatch()
-  const { categoryId, sort } = useSelector(state => state.filter)
+  const isSearch = useRef(false)
+  const isMounted = useRef(false)
+
+  const { categoryId, sort, currentPage } = useSelector(state => state.filter)
 
   const { searchValue } = useContext(SearchContext)
   const [items, setItems] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const [currentPage, setCurrentPage] = useState(1)
 
   const onChangeCategory = (id) => {
     dispatch(setCategoryId(id))
   }
-  
+
+  const onChangePage = number => {
+    dispatch(setCurrentPage(number))
+  }
+
+  const fetchPizzas = () => {
+    setIsLoading(true)
+
+    const order = sort.sortProperty.includes('-') ? 'asc' : 'desc'
+    const sortBy = sort.sortProperty.replace('-', '')
+    const category = categoryId > 0 ? `category=${categoryId}` : ''
+    const search = searchValue ? `&search=${searchValue}` : ''
+
+    axios.get(`https://633db4ae7e19b17829148831.mockapi.io/items?page=${currentPage}&limit=8&${category}&sortBy=${sortBy}&order=${order}${search}`)
+      .then(res => {
+        setItems(res.data)
+        setIsLoading(false)
+      })
+  }
+
+  // Если изменили параметры и был первый рендер 
   useEffect(() => {
-  setIsLoading(true)
+    if (isMounted.current) {
+      const queryString = qs.stringify({
+        sortProperty: sort.sortProperty,
+        categoryId,
+        currentPage
+      })
+  
+      navigate(`?${queryString}`)
+    }
+    isMounted.current = true
+  }, [categoryId, sort.sortProperty, currentPage])
 
-  const order = sort.sortProperty.includes('-') ? 'asc' : 'desc'
-  const sortBy = sort.sortProperty.replace('-', '')
-  const category = categoryId > 0 ? `category=${categoryId}` : ''
-  const search = searchValue ? `&search=${searchValue}` : ''
+  // Если был первый рендер, то проверяем URL параметры и сохраняем в redux
+  useEffect(() => {
+    if (window.location.search) {
+      const params = qs.parse(window.location.search.substring(1))
 
-  axios.get(`https://633db4ae7e19b17829148831.mockapi.io/items?page=${currentPage}&limit=8${category}&sortBy=${sortBy}&order=${order}${search}`)
-    .then(res => {
-      setItems(res.data)
-      setIsLoading(false)
-    })
+      const sort = sortList.find(obj => obj.sortProperty === params.sortProperty)
 
-  window.scrollTo(0, 0  )
+      dispatch(
+        setFilters({
+          ...params,
+          sort,
+        })
+      )
+      isSearch.current = true
+    }
+  }, [])
+
+  // Если был первый рендер, то запрашиваем пиццы
+  useEffect(() => {
+    window.scrollTo(0, 0)
+
+    if (!isSearch.current) {
+      fetchPizzas()
+    }
+
+    isSearch.current = false
+
   }, [categoryId, sort.sortProperty, searchValue, currentPage])
-
+ 
   const pizzas = items.map((obj) => (
     <PizzaBlock 
     {...obj}
@@ -60,7 +111,7 @@ const Home = () => {
                 : pizzas
                 }
             </div>
-            <Pagination onChangePage={number => setCurrentPage(number)} />
+            <Pagination currentPage={currentPage} onChangePage={onChangePage} />
         </div>
     );
 };
