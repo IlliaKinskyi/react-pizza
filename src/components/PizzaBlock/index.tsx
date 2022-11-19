@@ -3,9 +3,18 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { addItem, selectCartItemById } from '../../redux/slices/cartSlice'
 
+type PizzaBlockProps = {
+  id: string;
+  title: string;
+  price: number;
+  imageUrl: string;
+  sizes: number[];
+  types: number[];
+}
+
 const typeNames = ['тонкое', 'традиционное']
 
-function PizzaBlock({ id, title, price, imageUrl, sizes, types }) {
+const PizzaBlock:React.FC<PizzaBlockProps> = ({ id, title, price, imageUrl, sizes, types }) => {
   const dispatch = useDispatch()
   const cartItem = useSelector(selectCartItemById(id))
   const [activeType, setActiveType] = useState(0)
