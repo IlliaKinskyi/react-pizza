@@ -4,16 +4,17 @@ import Skeleton from '../components/PizzaBlock/Skeleton';
 import Sort from '../components/Sort';
 import Categories from '../components/Categories';
 import Pagination from '../components/Pagination';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom'
 import { selectFilter, setCategoryId, setCurrentPage, setFilters } from '../redux/slices/filterSlice'
 import qs from 'qs'
 import { sortList } from '../components/Sort'
-import { fetchPizzas, selectPizzaData } from '../redux/slices/pizzaSlice';
+import { fetchPizzas, SearchPizzaParams, selectPizzaData } from '../redux/slices/pizzaSlice';
+import { useAppDispatch } from '../redux/store';
 
 const Home: React.FC = () => {
   const navigate = useNavigate()
-  const dispatch = useDispatch()
+  const dispatch = useAppDispatch()
   const isSearch = useRef(false)
   const isMounted = useRef(false)
 
@@ -35,7 +36,6 @@ const Home: React.FC = () => {
     const search = searchValue ? `&search=${searchValue}` : ''
 
     dispatch(
-      // @ts-ignore
       fetchPizzas({
         order,
         sortBy,
@@ -64,18 +64,18 @@ const Home: React.FC = () => {
   // Если был первый рендер, то проверяем URL параметры и сохраняем в redux
   useEffect(() => {
     if (window.location.search) {
-      const params = qs.parse(window.location.search.substring(1))
-
-      const sort = sortList.find(obj => obj.sortProperty === params.sortProperty)
+      const params = (qs.parse(window.location.search.substring(1)) as unknown) as SearchPizzaParams
+      const sort = sortList.find(obj => obj.sortProperty === params.sortBy)
 
       dispatch(
         setFilters({
-          ...params,
-          sort,
-        })
-      )
-      isSearch.current = true
+          searchValue: params.search,
+          categoryId: Number(params.category),
+          currentPage: params.currentPage,
+          sort: sort || sortList[0],
+        }))
     }
+    isSearch.current = true
   }, [])
 
   // Если был первый рендер, то запрашиваем пиццы
