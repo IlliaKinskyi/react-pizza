@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/IlliaKinskyi/react-pizza/static/css/main.d768a2ba.css",
+    "main.js": "/IlliaKinskyi/react-pizza/static/js/main.49519aec.js",
+    "static/media/empty-cart.png": "/IlliaKinskyi/react-pizza/static/media/empty-cart.db905d1f4b063162f25b.png",
+    "static/media/pizza-logo.svg": "/IlliaKinskyi/react-pizza/static/media/pizza-logo.56ac87032d8f6fdf863326acd06c0d97.svg",
+    "index.html": "/IlliaKinskyi/react-pizza/index.html",
+    "static/media/close.svg": "/IlliaKinskyi/react-pizza/static/media/close.f56afae361fc375de932cac84021139a.svg",
+    "main.d768a2ba.css.map": "/IlliaKinskyi/react-pizza/static/css/main.d768a2ba.css.map",
+    "main.49519aec.js.map": "/IlliaKinskyi/react-pizza/static/js/main.49519aec.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.d768a2ba.css",
+    "static/js/main.49519aec.js"
+  ]
+}
